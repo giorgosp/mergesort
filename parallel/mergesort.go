@@ -5,18 +5,16 @@ import (
 	"sync"
 )
 
-var semChan chan struct{}
-
 // MergeSort performs the merge sort algorithm taking advantage of multiple processors.
 func MergeSort(src []int64) {
 	// We subtract 1 goroutine which is the one we are already running in.
 	extraGoroutines := runtime.NumCPU() - 1
-	semChan = make(chan struct{}, extraGoroutines)
+	semChan := make(chan struct{}, extraGoroutines)
 	defer close(semChan)
-	mergesort(src)
+	mergesort(src, semChan)
 }
 
-func mergesort(src []int64) {
+func mergesort(src []int64, semChan chan struct{}) {
 	if len(src) <= 1 {
 		return
 	}
@@ -34,16 +32,16 @@ func mergesort(src []int64) {
 	case semChan <- struct{}{}:
 		wg.Add(1)
 		go func() {
-			mergesort(left)
+			mergesort(left, semChan)
 			<-semChan
 			wg.Done()
 		}()
 	default:
-		// All other goroutines are blocked, let's do the job ourselves
-		mergesort(left)
+		// Can't create a new goroutine, let's do the job ourselves.
+		mergesort(left, semChan)
 	}
 
-	mergesort(right)
+	mergesort(right, semChan)
 
 	wg.Wait()
 
