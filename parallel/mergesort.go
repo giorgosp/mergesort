@@ -20,14 +20,8 @@ func mergesort(src []int64, semChan chan struct{}) {
 	}
 
 	mid := len(src) / 2
-
-	left := make([]int64, mid)
-	right := make([]int64, len(src)-mid)
-	copy(left, src[:mid])
-	copy(right, src[mid:])
-
-	// left := src[:mid]
-	// right := src[mid:]
+	left := src[:mid]
+	right := src[mid:]
 
 	wg := sync.WaitGroup{}
 
@@ -48,28 +42,25 @@ func mergesort(src []int64, semChan chan struct{}) {
 
 	wg.Wait()
 
-	merge(src, left, right)
+	merge(left, right)
 }
 
-func merge(result, left, right []int64) {
-	var l, r, i int
+// Merge in-place. left and right are slices of the original src array.
+func merge(left, right []int64) {
+	for i := range left {
+		// If right[0] < left[i], swap them.
+		if right[0] < left[i] {
+			temp := left[i]
+			left[i] = right[0]
+			right[0] = temp
 
-	for l < len(left) || r < len(right) {
-		if l < len(left) && r < len(right) {
-			if left[l] <= right[r] {
-				result[i] = left[l]
-				l++
-			} else {
-				result[i] = right[r]
-				r++
+			// Move the new right[0] to the appropriate place in the right array, so that is sorted.
+			first := right[0]
+			var place int
+			for place = 1; place < len(right) && first > right[place]; place++ {
+				right[place-1] = right[place]
 			}
-		} else if l < len(left) {
-			result[i] = left[l]
-			l++
-		} else if r < len(right) {
-			result[i] = right[r]
-			r++
+			right[place-1] = first
 		}
-		i++
 	}
 }

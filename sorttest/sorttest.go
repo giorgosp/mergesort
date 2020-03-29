@@ -15,7 +15,7 @@ func Test(sort func([]int64), elements int, t *testing.T) {
 	for i := 0; i < len(arr)-1; i++ {
 		if arr[i] >= arr[i+1] {
 			// arr should be sorted in ascending order
-			t.Fail()
+			t.FailNow()
 		}
 	}
 }
