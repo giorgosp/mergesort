@@ -11,20 +11,19 @@ func MergeSort(src []int64) {
 	extraGoroutines := runtime.NumCPU() - 1
 	semChan := make(chan struct{}, extraGoroutines)
 	defer close(semChan)
-	mergesort(src, semChan)
+	temp := make([]int64, len(src))
+	mergesort(src, temp, semChan)
 }
 
-func mergesort(src []int64, semChan chan struct{}) {
+func mergesort(src, temp []int64, semChan chan struct{}) {
 	if len(src) <= 1 {
 		return
 	}
 
 	mid := len(src) / 2
 
-	left := make([]int64, mid)
-	right := make([]int64, len(src)-mid)
-	copy(left, src[:mid])
-	copy(right, src[mid:])
+	left, lTemp := src[:mid], temp[:mid]
+	right, rTemp := src[mid:], temp[mid:]
 
 	wg := sync.WaitGroup{}
 
@@ -32,23 +31,23 @@ func mergesort(src []int64, semChan chan struct{}) {
 	case semChan <- struct{}{}:
 		wg.Add(1)
 		go func() {
-			mergesort(left, semChan)
+			mergesort(left, lTemp, semChan)
 			<-semChan
 			wg.Done()
 		}()
 	default:
 		// Can't create a new goroutine, let's do the job ourselves.
-		mergesort(left, semChan)
+		mergesort(left, lTemp, semChan)
 	}
 
-	mergesort(right, semChan)
+	mergesort(right, rTemp, semChan)
 
 	wg.Wait()
 
-	merge(src, left, right)
+	merge(src, temp, left, right)
 }
 
-func merge(result, left, right []int64) {
+func merge(src, result, left, right []int64) {
 	var l, r, i int
 
 	for l < len(left) || r < len(right) {
@@ -69,4 +68,5 @@ func merge(result, left, right []int64) {
 		}
 		i++
 	}
+	copy(src, result)
 }
