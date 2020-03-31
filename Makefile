@@ -4,9 +4,9 @@ test:
 
 .PHONY: bench
 bench:
-	go test -run=^$$ -bench=. -benchmem -cpuprofile cpu.prof -count 5
+	go test ./parallel -run=^$$ -bench=. -benchmem -cpuprofile cpu.prof -count 5
 
 .PHONY: trace
 trace:
-	go test -run=^$$ -bench=. -trace=trace.out
+	go test ./parallel -run=^$$ -bench=. -trace=trace.out
 
