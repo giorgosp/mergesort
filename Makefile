@@ -4,7 +4,7 @@ test:
 
 .PHONY: bench
 bench:
-	go test -run=^$$ -bench=. -benchmem -cpuprofile cpu.prof
+	go test -run=^$$ -bench=. -benchmem -cpuprofile cpu.prof -count 5
 
 .PHONY: trace
 trace:

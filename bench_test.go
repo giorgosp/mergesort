@@ -23,9 +23,9 @@ var impls = map[string]func([]int64){
 // BenchmarkMergeSort benchmarks mergesort. Uses the implementation specified
 // by the benchImpl flag.
 func BenchmarkMergeSort(b *testing.B) {
-	fmt.Printf("Benchmarking %s mergesort\n", *benchImpl)
-
 	elements := 16_000_000
+	fmt.Printf("Benchmarking %s mergesort with %d elements\n", *benchImpl, elements)
+
 	shuffled := sorttest.MakeArray(elements)
 	src := make([]int64, elements)
 
