@@ -1,22 +1,17 @@
 package parallel
 
 import (
-	"runtime"
 	"sort"
 	"sync"
 )
 
 // MergeSort performs the merge sort algorithm taking advantage of multiple processors.
 func MergeSort(src []int64) {
-	// We subtract 1 goroutine which is the one we are already running in.
-	extraGoroutines := runtime.NumCPU() - 1
-	semChan := make(chan struct{}, extraGoroutines)
-	defer close(semChan)
 	temp := make([]int64, len(src))
-	mergesort(src, temp, semChan)
+	mergesort(src, temp)
 }
 
-func mergesort(src, temp []int64, semChan chan struct{}) {
+func mergesort(src, temp []int64) {
 	if len(src) <= 10000 {
 		sort.Slice(src, func(i int, j int) bool { return src[i] <= src[j] })
 		return
@@ -29,20 +24,13 @@ func mergesort(src, temp []int64, semChan chan struct{}) {
 
 	wg := sync.WaitGroup{}
 
-	select {
-	case semChan <- struct{}{}:
-		wg.Add(1)
-		go func() {
-			mergesort(left, lTemp, semChan)
-			<-semChan
-			wg.Done()
-		}()
-	default:
-		// Can't create a new goroutine, let's do the job ourselves.
-		mergesort(left, lTemp, semChan)
-	}
+	wg.Add(1)
+	go func() {
+		mergesort(left, lTemp)
+		wg.Done()
+	}()
 
-	mergesort(right, rTemp, semChan)
+	mergesort(right, rTemp)
 
 	wg.Wait()
 
