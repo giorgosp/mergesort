@@ -2,6 +2,7 @@ package parallel
 
 import (
 	"runtime"
+	"sort"
 	"sync"
 )
 
@@ -16,7 +17,8 @@ func MergeSort(src []int64) {
 }
 
 func mergesort(src, temp []int64, semChan chan struct{}) {
-	if len(src) <= 1 {
+	if len(src) <= 10000 {
+		sort.Slice(src, func(i int, j int) bool { return src[i] <= src[j] })
 		return
 	}
 
